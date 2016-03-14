@@ -118,7 +118,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(robopatrol
-#   src/${PROJECT_NAME}/robopatrol.cpp
+#   ${PROJECT_NAME}/robopatrol.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -127,7 +127,7 @@ include_directories(
 # add_dependencies(robopatrol ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(robopatrol_node src/robopatrol_node.cpp)
+# add_executable(robopatrol_node robopatrol_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
