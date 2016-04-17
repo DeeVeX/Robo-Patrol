@@ -1,0 +1,10 @@
+<!-- launch file to run robopatrol on turtlebot -->
+<launch>
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" >
+    <arg name="port" value="9090"/>
+  </include>
+  <include file="$(find robopatrol)/launch/robopatrol.launch" >
+  </include>
+  <include file="$(find turtlebot_bringup)/launch/minimal.launch" >
+  </include>
+</launch>

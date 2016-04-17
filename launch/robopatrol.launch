@@ -1,0 +1,7 @@
+<!-- launch file to start robopatrol -->
+<launch>
+  <!-- Example node config:
+  <node pkg="robopatrol" type="name_of_script" name="name_of_node">
+  </node>
+  -->
+</launch>
