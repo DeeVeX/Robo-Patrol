@@ -7,6 +7,11 @@ project(robopatrol)
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   rospy
+  actionlib
+  actionlib_msgs
+  kobuki_msgs
+  move_base_msgs
+  smart_battery_msgs
   sensor_msgs
 )
 
