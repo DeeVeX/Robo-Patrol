@@ -4,7 +4,7 @@ services:
     robot:
         build: .
         container_name: robot
-        command: /bin/bash -c 'source ./devel/setup.bash && rosrun robopatrol turtlebot'
+        command: /bin/bash -c 'source ./devel/setup.bash && roslaunch robopatrol turtlebot.launch'
             
     robopatrol:
         build: .
