@@ -1,4 +1,4 @@
-FROM robopatrol:robopatrol-base
+FROM robopatrol/robopatrol-base:latest
 
 ENV robopatrol_ws=/catkin_ws
 

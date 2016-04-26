@@ -1,8 +1,11 @@
-robot:
-    build: .
-    container_name: master
-    command: /bin/bash -c 'source $robopatrol_ws/devel/setup.bash && rosrun robopatrol turtlebot'
-        
-robopatrol:
-    build: .
-    container_name: robopatrol
+version: "2"
+
+services:
+    robot:
+        build: .
+        container_name: robot
+        command: /bin/bash -c 'source ./devel/setup.bash && rosrun robopatrol turtlebot'
+            
+    robopatrol:
+        build: .
+        container_name: robopatrol
