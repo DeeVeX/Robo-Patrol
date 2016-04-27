@@ -9,4 +9,13 @@ setup_args = generate_distutils_setup(
     package_dir={'': 'src'},
 )
 
-setup(**setup_args)
+setup(
+	name='Robopatrol',
+	version='0.0.0',
+	description='Robot doing patrols',
+	install_requires=[
+		'apscheduler',
+		'json-schema'
+	]
+)
+
