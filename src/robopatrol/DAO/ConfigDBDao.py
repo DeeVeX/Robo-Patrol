@@ -1,4 +1,5 @@
 import requests
+from requests.exceptions import ConnectionError
 import json
 from jsonschema import validate, ValidationError
 
@@ -21,8 +22,8 @@ class ConfigDBDao:
         pass
 
     def get_jobs(self):
-        myResponse = requests.get(self.configURL)
         try:
+            myResponse = requests.get(self.configURL)
             if myResponse.ok:
                 JData = json.loads(myResponse.content)
                 #Validate and remove invalid
@@ -33,7 +34,7 @@ class ConfigDBDao:
                         JData.remove(job)
             else:
                 JData = None
-        except ValueError:
+        except (ValueError, ConnectionError):
             JData = None
         return JData
 
