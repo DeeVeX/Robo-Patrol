@@ -47,6 +47,9 @@ def terminate(scheduler):
 scheduler = RobopatrolScheduler(job_listdict)
 configDBDao = ConfigDBDao()
 posted_jobs = configDBDao.post_jobs(scheduler.get_jobs_json())
+if posted_jobs is False:
+    print "Could not connect to the robopatrol server."
+    exit(1)
 scheduler.start()
 scheduler.pause_all_jobs()
 

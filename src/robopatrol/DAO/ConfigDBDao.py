@@ -44,13 +44,16 @@ class ConfigDBDao:
 
     def post_jobs(self, job_listdict):
         headers = {'Content-type': 'application/json'}
-        myresponse = requests.get(self.configURL)
         response = None
+        try:
+            myresponse = requests.get(self.configURL)
+            if myresponse.ok:
+                JData = json.loads(myresponse.content)
+                namelist = [x['name'] for x in JData if 'name' in x]
+                for job_dict in job_listdict:
+                    if job_dict['name'] not in namelist:
+                        response = requests.post(self.configURL, data=json.dumps(job_dict), headers=headers)
+        except ConnectionError:
+            response = False
 
-        if myresponse.ok:
-            JData = json.loads(myresponse.content)
-            namelist = [x['name'] for x in JData if 'name' in x]
-            for job_dict in job_listdict:
-                if job_dict['name'] not in namelist:
-                    response = requests.post(self.configURL, data=json.dumps(job_dict), headers=headers)
         return response
