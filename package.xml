@@ -48,9 +48,6 @@
   <run_depend>geometry_msgs</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>sensor_msgs</run_depend>
-  <run_depend>apscheduler</run_depend>
-  <run_depend>json-schema</run_depend>
-  <run_depend>requests</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

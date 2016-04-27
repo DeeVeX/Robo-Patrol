@@ -79,5 +79,5 @@ class RobopatrolScheduler(BackgroundScheduler):
         return jobs_json
 
     def pause_all_jobs(self):
-        for job in self.get_jobs:
+        for job in self.get_jobs():
             job.pause()

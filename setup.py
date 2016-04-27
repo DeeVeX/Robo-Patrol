@@ -5,17 +5,16 @@ from catkin_pkg.python_setup import generate_distutils_setup
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
+    name='robopatrol',
+    version='0.0.0',
+    description='The robopatrol package',
+    install_requires=[
+        'apscheduler',
+        'json-schema'
+    ],
     packages=['robopatrol'],
     package_dir={'': 'src'},
 )
 
-setup(
-	name='Robopatrol',
-	version='0.0.0',
-	description='Robot doing patrols',
-	install_requires=[
-		'apscheduler',
-		'json-schema'
-	]
-)
+setup(**setup_args)
 
