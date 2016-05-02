@@ -1,0 +1,5 @@
+catkin_pkg
+coverage
+nose
+python-coveralls
+rospkg

@@ -1,7 +1,17 @@
 <!-- launch file to start robopatrol -->
 <launch>
-  <!-- Example node config:
-  <node pkg="robopatrol" type="name_of_script" name="name_of_node">
-  </node>
-  -->
+  <!-- map server -->
+  <arg name="map_file" default="$(find robopatrol)/maps/empty.yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+
+  <!-- rosbridge websocket server -->
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" >
+    <arg name="port" value="9090"/>
+  </include>
+
+  <!-- robot pose publisher -->
+  <node name="robot_pose_publisher" pkg="robot_pose_publisher" type="robot_pose_publisher" />
+
+  <!-- slam gmapping (does not work properly with webapp ros2djs/nav2djs) -->
+  <!--<include file="$(find turtlebot_navigation)/launch/includes/gmapping.launch.xml"/>-->
 </launch>

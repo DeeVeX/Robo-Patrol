@@ -8,6 +8,11 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   rospy
   sensor_msgs
+  actionlib
+  actionlib_msgs
+  move_base_msgs
+  nav_msgs
+  tf
 )
 
 ## System dependencies are found with CMake's conventions

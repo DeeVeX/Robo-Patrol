@@ -41,7 +41,9 @@
 dist: trusty
 sudo: required
 language:
-  - generic
+  - python
+python:
+  - 2.7
 cache:
   - apt
 
@@ -50,47 +52,48 @@ cache:
 env:
   global:
     - ROS_DISTRO=indigo
-    - ROS_CI_DESKTOP="`lsb_release -cs`"  # e.g. [precise|trusty|...]
-    - CI_SOURCE_PATH=$(pwd)
-    - PKG_NAME=robopatrol
-    - PKG_SRC_DIR=./src/robopatrol
-    - ENV_BIN=./devel/env.sh
+    - OS_DISTRO="`lsb_release -cs`"  # e.g. [precise|trusty|...]
+    - SOURCE_PATH=$(pwd)
+    - CATKIN_WS=~/catkin_ws
 
 ################################################################################
 
 # Install system dependencies, namely a very barebones ROS setup.
 before_install:
-  - sudo sh -c "echo \"deb http://packages.ros.org/ros/ubuntu $ROS_CI_DESKTOP main\" > /etc/apt/sources.list.d/ros-latest.list"
+  - pip install -r requirements.txt
+  - sudo sh -c "echo \"deb http://packages.ros.org/ros/ubuntu $OS_DISTRO main\" > /etc/apt/sources.list.d/ros-latest.list"
   - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
   - sudo apt-get update -qq
-  - sudo apt-get install -y python-catkin-pkg python-rosdep ros-$ROS_DISTRO-catkin # python-coverage
+  - sudo apt-get install -y python-rosdep ros-$ROS_DISTRO-catkin
   - source /opt/ros/$ROS_DISTRO/setup.bash
   # Prepare rosdep to install dependencies.
   - sudo rosdep init
   - rosdep update
 
-# Create a catkin workspace with the package under integration.
+# Install all dependencies, using rosdep.
 install:
-  - mkdir -p ~/catkin_ws/src
-  - cd ~/catkin_ws
+  - rosdep install -y --from-paths $SOURCE_PATH --ignore-src --rosdistro $ROS_DISTRO
+
+# Create a catkin workspace with the package under integration.
+before_script:
+  - mkdir -p $CATKIN_WS/src
+  - cd $CATKIN_WS
   - catkin_init_workspace ./src/
-  # Create the devel/setup.bash (run catkin_make with an empty workspace) and
-  # source it to set the path variables.
+  # Add the package under integration to the workspace using a symlink.
+  - ln -s $SOURCE_PATH ./src/
+  # Create the devel/setup.bash and source it to set the path variables.
   - catkin_make
   - source devel/setup.bash
-  # Add the package under integration to the workspace using a symlink.
-  - ln -s $CI_SOURCE_PATH ./src/
-
-# Install all dependencies, using rosdep.
-before_script:
-  - rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO
 
 # Compile and test.
 script:
-  - catkin_make
   - catkin_make run_tests  # This always returns 0
   - catkin_test_results # This will return non-zero if a test fails.
-#  - $ENV_BIN nosetests --where=$PKG_SRC_DIR --with-coverage --cover-erase --cover-package=$PKG_NAME
+  # coverage
+  - $CATKIN_WS/devel/env.sh nosetests --where=$SOURCE_PATH --with-coverage --cover-erase --cover-package=robopatrol
 
-#after_success:
-#  - coveralls
+after_success:
+  - coveralls
+  
+notifications:
+  email: false
