@@ -5,6 +5,8 @@ services:
         build: .
         container_name: robot
         command: /bin/bash -c 'source ./devel/setup.bash && roslaunch robopatrol turtlebot.launch'
+        ports:
+            - "9090:9090"
             
     robopatrol:
         build: .

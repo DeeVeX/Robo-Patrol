@@ -14,8 +14,8 @@ ros-indigo-rocon-remocon \
 ros-indigo-rocon-qt-library \
 ros-indigo-ar-track-alvar-msgs
 
-# Used for the catkin build
-RUN sudo apt-get install -y build-essential
+# Packages for catkin build and rosbridge
+RUN sudo apt-get install -y build-essential python-twisted
 
 # Make image smaller
 RUN sudo rm -rf /var/lib/apt/lists/*
