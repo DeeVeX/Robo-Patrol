@@ -7,6 +7,7 @@ RUN sudo apt-get install -y \
 ros-indigo-turtlebot \
 ros-indigo-turtlebot-apps \
 ros-indigo-turtlebot-interactions \
+ros-indigo-zeroconf-avahi \
 ros-indigo-rosbridge-suite \
 ros-indigo-turtlebot-simulator \
 ros-indigo-kobuki-ftdi \

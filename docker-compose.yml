@@ -1,13 +1,18 @@
 version: "2"
 
 services:
-    robot:
+    turtlebot:
         build: .
-        container_name: robot
+        container_name: robopatrol-turtlebot 
         command: /bin/bash -c 'source ./devel/setup.bash && roslaunch robopatrol turtlebot.launch'
         ports:
             - "9090:9090"
-            
-    robopatrol:
+
+    simulation:
         build: .
-        container_name: robopatrol
+        container_name: robopatrol-simulation
+        ports:
+            - "9090:9090"
+            - "11311:11311"
+            - "11345:11345"
+
