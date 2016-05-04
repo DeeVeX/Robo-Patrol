@@ -8,10 +8,6 @@ setup_args = generate_distutils_setup(
     name='robopatrol',
     version='0.0.0',
     description='The robopatrol package',
-    install_requires=[
-        'apscheduler',
-        'json-schema'
-    ],
     packages=['robopatrol'],
     package_dir={'': 'src'},
 )
