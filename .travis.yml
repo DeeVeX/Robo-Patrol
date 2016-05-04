@@ -68,6 +68,7 @@ before_install:
   - source /opt/ros/$ROS_DISTRO/setup.bash
   # Prepare rosdep to install dependencies.
   - sudo rosdep init
+  - sudo sh -c "echo \"yaml https://raw.githubusercontent.com/robopatrol/rosdistro/master/rosdep/python.yaml\" > /etc/ros/rosdep/sources.list.d/10-robopatrol.list"
   - rosdep update
 
 # Install all dependencies, using rosdep.
