@@ -4,3 +4,4 @@ nose
 python-coveralls
 rospkg
 jsonschema
+apscheduler
