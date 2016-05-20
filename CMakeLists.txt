@@ -5,14 +5,16 @@ project(robopatrol)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  geometry_msgs
   rospy
   sensor_msgs
   actionlib
   actionlib_msgs
   move_base_msgs
   nav_msgs
+  geometry_msgs
   tf
+  rplidar_ros
+  hector_sensors_description
 )
 
 ## System dependencies are found with CMake's conventions
@@ -184,7 +186,7 @@ include_directories(
 #############
 
 if(CATKIN_ENABLE_TESTING)
-    #find_package(rostest REQUIRED)
+    find_package(rostest REQUIRED)
     
     ## Add gtest based cpp test target and link libraries
     # catkin_add_gtest(${PROJECT_NAME}-test test/test_robopatrol.cpp)
