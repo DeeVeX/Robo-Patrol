@@ -49,8 +49,6 @@
   <build_depend>move_base_msgs</build_depend>
   <build_depend>nav_msgs</build_depend>
   <build_depend>tf</build_depend>
-  <!--<build_depend>apscheduler</build_depend>-->
-  <build_depend>jsonschema</build_depend>
   <build_depend>rplidar_ros</build_depend>
   <build_depend>hector_sensors_description</build_depend>
 
@@ -62,8 +60,6 @@
   <run_depend>move_base_msgs</run_depend>
   <run_depend>nav_msgs</run_depend>
   <run_depend>tf</run_depend>
-  <!--<run_depend>apscheduler</run_depend>-->
-  <run_depend>jsonschema</run_depend>
   <run_depend>rplidar_ros</run_depend>
   <run_depend>hector_sensors_description</run_depend>
 

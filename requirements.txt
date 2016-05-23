@@ -4,4 +4,4 @@ nose
 python-coveralls
 rospkg
 jsonschema
-apscheduler
+-e git://github.com/agronholm/apscheduler.git@596c679937040b4fc2ae2b796ce27dcb9df405ca#egg=apscheduler
