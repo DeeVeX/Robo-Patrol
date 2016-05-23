@@ -16,6 +16,7 @@ WORKDIR $robopatrol_ws
 COPY . $robopatrol_ws/src/robopatrol
 
 # Build
+RUN pip install -r src/robopatrol/requirements.txt
 RUN /bin/bash -c 'source /opt/ros/indigo/setup.bash && catkin_make'
 
 # Start Simulation

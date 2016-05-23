@@ -21,11 +21,13 @@
   <arg name="map_file" default="$(env TURTLEBOT_GAZEBO_MAP_FILE)" doc="map file for gazebo simulation"/>
   <arg name="world_file" default="$(env TURTLEBOT_GAZEBO_WORLD_FILE)" doc="world file for gazebo simulation"/>
 
+
+  <node name="map_service" pkg="robopatrol" type="map_service" output="screen" />
   <!-- Map server -->
-  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
-  
+  <!--<node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />-->
+
   <!-- run SLAM -->
-  <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen" required="true">
+  <!--<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen" required="true">
     <param name="base_frame" value="$(arg base_frame_id)"/>
     <param name="odom_frame" value="$(arg odom_frame_id)"/>
     <param name="map_update_interval" value="5.0"/>
@@ -59,7 +61,7 @@
     <param name="lasamplerange" value="0.005"/>
     <param name="lasamplestep" value="0.005"/>
     <remap from="scan" to="$(arg laser_topic)"/>
-  </node>
+  </node>-->
 
   <!-- gazebo simulator -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -96,7 +98,7 @@
   </include>
 
   <!-- run autonomous patrol -->
-  <node pkg="robopatrol" type="autonomousPatrol" name="autopatrol" output="screen" respawn="false">
-  </node>
+  <!--<node pkg="robopatrol" type="autonomousPatrol" name="autopatrol" output="screen" respawn="false">
+  </node>-->
 
 </launch>
