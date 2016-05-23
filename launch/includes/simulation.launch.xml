@@ -1,0 +1,60 @@
+<launch>
+
+  <arg name="base" />
+  <arg name="stacks" />
+  <arg name="3d_sensor" />
+  <arg name="odom_frame_id" />
+  <arg name="base_frame_id" />
+  <arg name="global_frame_id" />
+  <arg name="odom_topic" />
+  <arg name="laser_topic" />
+
+  <!-- bot stuff -->
+  <arg name="urdf_file" default="$(find xacro)/xacro.py '$(find robopatrol)/robots/kobuki_hexagons_kinect_rplidar.urdf.xacro'" />
+  <param name="robot_description" command="$(arg urdf_file)" />
+
+  <!-- important generally, but specifically utilised by the current app manager -->  
+  <param name="robot/name" value="$(optenv ROBOT turtlebot)"/>
+  <param name="robot/type" value="turtlebot"/>
+
+  <!-- Move base -->
+  <!-- ROS navigation stack with velocity smoother and safety (reactive) controller -->
+  <include file="$(find turtlebot_navigation)/launch/includes/velocity_smoother.launch.xml"/>
+  <include file="$(find turtlebot_navigation)/launch/includes/safety_controller.launch.xml"/>
+
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <rosparam file="$(find robopatrol)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find robopatrol)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find robopatrol)/param/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find robopatrol)/param/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find robopatrol)/param/dwa_local_planner_params.yaml" command="load" />
+    <rosparam file="$(find robopatrol)/param/move_base_params.yaml" command="load" />
+    <rosparam file="$(find robopatrol)/param/global_planner_params.yaml" command="load" />
+    <rosparam file="$(find robopatrol)/param/navfn_global_planner_params.yaml" command="load" />
+    
+    <!-- reset frame_id parameters using user input data -->
+    <param name="global_costmap/global_frame" value="$(arg global_frame_id)"/>
+    <param name="global_costmap/robot_base_frame" value="$(arg base_frame_id)"/>
+    <param name="local_costmap/global_frame" value="$(arg odom_frame_id)"/>
+    <param name="local_costmap/robot_base_frame" value="$(arg base_frame_id)"/>
+    <param name="DWAPlannerROS/global_frame_id" value="$(arg odom_frame_id)"/>
+
+    <remap from="cmd_vel" to="navigation_velocity_smoother/raw_cmd_vel"/>
+    <remap from="odom" to="$(arg odom_topic)"/>
+    <remap from="scan" to="$(arg laser_topic)"/>
+  </node>
+
+  <node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator" >
+    <rosparam command="load" file="$(find turtlebot_bringup)/param/$(arg base)/diagnostics.yaml" />
+  </node>
+
+  <!-- rosbridge websocket server -->
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" >
+    <arg name="port" value="9090"/>
+  </include>
+
+  <!-- robot pose publisher -->
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="5.0" />
+  </node>
+</launch>

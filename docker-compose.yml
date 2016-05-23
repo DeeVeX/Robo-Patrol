@@ -11,6 +11,7 @@ services:
     simulation:
         build: .
         container_name: robopatrol-simulation
+        command: /bin/bash -c 'source ./devel/setup.bash && roslaunch robopatrol simulation.launch'
         ports:
             - "9090:9090"
             - "11311:11311"

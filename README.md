@@ -1,16 +1,18 @@
 # Robo-Patrol
 
+ROS (Robot OS) nodes for Turtlebot.
+
 [![Travis Build Status](https://travis-ci.org/robopatrol/robopatrol.svg?branch=master)](https://travis-ci.org/robopatrol/robopatrol)
 [![Coverage Status](https://coveralls.io/repos/github/robopatrol/robopatrol/badge.svg?branch=master)](https://coveralls.io/github/robopatrol/robopatrol?branch=master)
 [![](https://imagelayers.io/badge/robopatrol/robopatrol:latest.svg)](https://imagelayers.io/?images=robopatrol/robopatrol:latest)
 
-ROS (Robot OS) nodes for Turtlebot.
-
 Main project documentation: **[Project Wiki](https://github.com/robopatrol/robopatrol/wiki)**
 
-More technical documentation for developers can be found in [/docs](robopatrol/docs/)
+Technical documentation for developers can be found in [/docs](docs/)
 
 ## Setup ROS and Robopatrol with Docker
+
+By using docker, a lot of the project setup and the downloading of all dependencies can be automated. It is also the way we release the application.
 
 ### Get Docker
 

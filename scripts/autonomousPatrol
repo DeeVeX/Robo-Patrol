@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 '''
-Node: Autonomous_RoboPatrol
-Author: R. Georgiou
-Version: 1.0
-Last modified: 01.05.2016
+ROS Node: 	autopatrol
+Author:   	R. Georgiou
+Version:  	1.1
+Last modified:	20.05.2016
 
 
 This implementation uses a SimpleActionClient to connect to an ActionServer.
@@ -30,8 +30,8 @@ With tf we can maintain the relationship between coordinate frames in a tree str
 import rospy
 import actionlib
 from actionlib_msgs.msg import *
-from geometry_msgs.msg import *
-import move_base_msgs.msg
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from geometry_msgs.msg import Pose, Point, Quaternion, Twist
 import nav_msgs.msg
 import tf
 import math
@@ -39,23 +39,29 @@ import math
 
 class AutonomousPatrol():
 
-     # reference coordinate frame, used in the MoveBaseGoal message
-     # base_footprint	attached to the mobile base	
-    _coordinateFrame = 'base_footprint'
+    __patrolActive = False
+
+    # reference coordinate frame, used in the MoveBaseGoal message
+    # base_footprint	attached to the mobile base
+    __COORDINATE_FRAME_BASE = 'base_footprint'
+    __COORDINATE_FRAME_MAP = 'map'
+
     # [m]
-    _defaultDistance = 2
+    __defaultDistanceX = 0.2
+    __defaultDistanceY = 0.0
 
 
     def __init__(self):
 
-	rospy.init_node('Autonomous_RoboPatrol', anonymous=False)
+	rospy.init_node('autopatrol', anonymous=False)
 
 	# method stop is called in case of shutdown or failure
 	rospy.on_shutdown(self.stop)
 
 	# Constructs a SimpleActionClient and opens connections to an ActionServer.
 	#The move_base package provides an implementation of an action.
-	self.client = actionlib.SimpleActionClient('move_base', move_base_msgs.msg.MoveBaseAction)
+	# spawning a new thread
+	self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
 	
 	# Wait for the action server to report that it has come up and is ready to begin processing goals.
 	# Blocks until the action server connects to this client.
@@ -82,12 +88,8 @@ class AutonomousPatrol():
 	'''
 	self.odomPose = nav_msgs.msg.Odometry()
 
-        # get current pose from odometry and store it in global variable currentPose
+        # get current pose from odometry and store it in global variable odomPose
         rospy.Subscriber('odom', nav_msgs.msg.Odometry, self._setCurrentOdomPoseCallback)
-
-	self.pos, self.quat = self._getCurrentPosition()
-	rospy.loginfo("current position -> " + str(self.pos))
-	rospy.loginfo("current orientation -> " + str(self.quat))
 
 
     def _setCurrentOdomPoseCallback(self, pose):
@@ -96,8 +98,8 @@ class AutonomousPatrol():
 
     '''
     type: geometry_msgs/PoseWithCovariance Message
-    	Pose pose
-	float64 covariance
+    	  Pose pose
+	  float64 covariance
     '''
     def getCurrentOdomPose(self):
 	return self.odomPose
@@ -125,26 +127,34 @@ class AutonomousPatrol():
 
 	rospy.loginfo('Sending a series of twist commands to make sure the robot stops.')
 
-	for i in range(0,5):
+	for i in range(0,3):
 	    pub.publish(twist)
+	    rospy.sleep(1)
 
+	self.__patrolActive = False
 	rospy.loginfo('Robot has stopped.')
 
 
     '''
-    Starts the autonomous patrol.
+    Starts the autonomous patrol
     '''
-    def run(self):
+    def startAutopatrol(self):
 
-        rospy.loginfo('Starting the initial mapping of the surrounding area...')
+	self.__patrolActive = True
 
-	# Do a complete rotation (2*PI) and let the robot discover its surroundings
-	rad = 90 * math.pi / 180
-	for i in range(0,3):
-	    self._rotate(rad)
+        rospy.loginfo('Starting patrol...')
 
-	rospy.loginfo('Mapping of the surrounding area is complete.')
-	rospy.loginfo('Ready to run.')
+	# create a goal
+        goal = MoveBaseGoal()
+
+        # set coordinate frame
+        goal.target_pose.header.frame_id = self.__COORDINATE_FRAME_BASE
+
+        # set time stamp
+        goal.target_pose.header.stamp = rospy.Time.now()
+
+        # set the pose (position + orientation)
+	goal.target_pose.pose = Pose(Point(self.__defaultDistanceX, self.__defaultDistanceY, 0), Quaternion(0, 0, 0, 1))
 
 	'''
 	*************************************************************************************************
@@ -155,59 +165,63 @@ class AutonomousPatrol():
 	*************************************************************************************************
 	'''
 	while not rospy.is_shutdown():
-
-	    # create a goal	    
-	    goal = move_base_msgs.msg.MoveBaseGoal()
-
-	    # set coordinate frame
-	    goal.target_pose.header.frame_id = self._coordinateFrame
-
-            # set time stamp
-	    goal.target_pose.header.stamp = rospy.Time.now()
-
-	    # set the pose (position + orientation)
-	    # position
-	    goal.target_pose.pose.position.x = self._defaultDistance
-	    goal.target_pose.pose.position.y = 0
-	    goal.target_pose.pose.position.z = 0
-	    # orientation
-	    goal.target_pose.pose.orientation.x = 0
-	    goal.target_pose.pose.orientation.y = 0
-	    goal.target_pose.pose.orientation.z = 0
-	    goal.target_pose.pose.orientation.w = 1
-
-	    # send the navigation goal to the navigation stack
-	    if not rospy.is_shutdown():
-	        self.client.send_goal(goal)
-
-	    success = self.client.wait_for_result(rospy.Duration(30))
-
-	    if not success:
-                self.client.cancel_goal()
-                rospy.loginfo("The base failed to reach the goal.")
-    	    else:
-		state = self.client.get_state()
-		if state == GoalStatus.SUCCEEDED:
-		    rospy.loginfo("MoveBaseGoal reached, yay! Team RoboPatrol FTW !")
+	    self.moveTheBase(goal)
+	
+	self.__patrolActive = False
 
 
-    def _rotate(self, rad):
+    def isAutopatrolActive(self):
+	return self.__patrolActive
+
+
+    '''
+    @param   MoveBaseGoal target, int timeout [s]   default value = 30 [s]
+             message format: geometry_msgs/PoseStamped target_pose
+
+	     important: specify the coordinate frame when passing the target goal (map, base_footprint, ...)
+    @return  boolean     goal reached true or false
+    '''
+    def moveTheBase(self, target, timeout=30):
+
+        if not rospy.is_shutdown():
+            self.client.cancel_goals_at_and_before_time(rospy.Time.now())
+
+        # send the navigation goal to the navigation stack
+        self.client.send_goal(target)
+	
+	success = self.client.wait_for_result(rospy.Duration(timeout))
+	#rospy.loginfo("success -> " + str(success))
+	if not success:
+            self.client.cancel_goal()
+            rospy.loginfo("The base failed to reach the goal.")
+    	else:
+	    state = self.client.get_state()
+	    #rospy.loginfo("state -> " + str(state))
+ 	    if state == GoalStatus.SUCCEEDED:
+                rospy.loginfo("MoveBaseGoal reached, yay! Team RoboPatrol FTW !")
+		#self.printCurrentPosition()
+
+	return success
+
+
+    '''
+    @param   float rad (angle in radians)
+    '''
+    def rotate(self, rad):
 
 	quaternionDifference = tf.transformations.quaternion_about_axis(rad, (0, 0, 1))
-	position, quaternion = self._getCurrentPosition()
+	position, quaternion = self.getCurrentMapPosition()
 
         transformedQuaternion = tf.transformations.quaternion_multiply(quaternion, quaternionDifference)
-	rotatorGoal = move_base_msgs.msg.MoveBaseGoal()
 
- 	rospy.loginfo(quaternion)
-	rospy.loginfo(quaternionDifference)
+        if not rospy.is_shutdown():
+            self.client.cancel_goals_at_and_before_time(rospy.Time.now())
 
+	rotatorGoal = MoveBaseGoal()
 	# set coordinate frame
-	rotatorGoal.target_pose.header.frame_id = self._coordinateFrame
-
+	rotatorGoal.target_pose.header.frame_id = self.__COORDINATE_FRAME_BASE
         # set time stamp
 	rotatorGoal.target_pose.header.stamp = rospy.Time.now()
-
 	# set the pose (position + orientation)
 	# position (3d point)
 	rotatorGoal.target_pose.pose.position.x = position[0]
@@ -224,20 +238,20 @@ class AutonomousPatrol():
 	if not self.client.wait_for_result(rospy.Duration(5)):
 	    rospy.loginfo('The base failed to rotate.')
 
-    	rospy.sleep(0.1)
+    	rospy.sleep(1)
 
 
     '''
-    Find the current base_link position in the map
+    Returns the current position of the base relative to the map
     http://wiki.ros.org/tf/TfUsingPython
     '''
-    def _getCurrentPosition(self):
+    def getCurrentMapPosition(self):
 	
 	_position = []
 	_orientation = []
 
 	if not rospy.is_shutdown():
-	    rospy.loginfo('Waiting for tf listener...')
+	    # Waiting for tf listener...
 	    transformListenerReady = False
 	    while not transformListenerReady:
 	        try:
@@ -247,27 +261,174 @@ class AutonomousPatrol():
 		        rostime = self.tfListener.getLatestCommonTime('/map', '/base_footprint')
 
 		        # Returns the transform from source_frame to target_frame at time.
+			# lookupTransform(target_frame, source_frame, time) -> position, quaternion
 		        # time is a rospy.Time.
 		        # The transform is returned as position (x,y,z) and an orientation quaternion (x,y,z,w).
 		        _position, _orientation = self.tfListener.lookupTransform('/map', '/base_footprint', rostime)
-
-		        #rospy.loginfo(_position)
-		        #rospy.loginfo(_orientation)
-
 		        transformListenerReady = True
 	        except tf.Exception:
-		    rospy.loginfo('tf listener not ready.')
+		    # tf listener is not ready
 		    rospy.sleep(1)
-
-  	    rospy.loginfo('tf listener is ready.')
 	
 	return _position, _orientation
+
+
+    def printCurrentPosition(self):
+
+	pos, quat = self.getCurrentMapPosition()
+	rospy.loginfo("current position (x,y,z) -> " + str(pos))
+	rospy.loginfo("current orientation (x,y,z,w) -> " + str(quat))
+
+
+    '''
+    ***** TESTS *****
+    '''
+    def runAllTests(self):
+	
+	pos, quat = self.getCurrentMapPosition()
+
+	self.testMoveToMapPosition([-2,0,0], [0,0,0,1])
+
+	self.testBaseHasMoved(pos)
+
+	self.testMoveForwardOneMetre()
+
+	self.testStayStill()
+
+        # random move base test
+	goal = MoveBaseGoal()
+	goal.target_pose.header.frame_id = self.__COORDINATE_FRAME_BASE
+	goal.target_pose.header.stamp = rospy.Time.now()
+	goal.target_pose.pose.position.x = 3
+	goal.target_pose.pose.position.y = 0
+	goal.target_pose.pose.position.z = 0
+	goal.target_pose.pose.orientation.x = 0
+	goal.target_pose.pose.orientation.y = 0
+	goal.target_pose.pose.orientation.z = 0
+	goal.target_pose.pose.orientation.w = 1
+	self.moveTheBase(goal)
+	
+
+    def testStayStill(self):
+
+	rospy.loginfo('Test: stay still')
+
+        if not rospy.is_shutdown():
+            self.client.cancel_goals_at_and_before_time(rospy.Time.now())
+
+	# estimated position
+	self.printCurrentPosition()
+
+	pos, quat = self.getCurrentMapPosition()
+
+	goal = MoveBaseGoal()
+	goal.target_pose.header.frame_id = self.__COORDINATE_FRAME_BASE
+	goal.target_pose.header.stamp = rospy.Time.now()
+	goal.target_pose.pose.position.x = pos[0]
+	goal.target_pose.pose.position.y = pos[1]
+	goal.target_pose.pose.position.z = pos[2]
+	goal.target_pose.pose.orientation.x = quat[0]
+	goal.target_pose.pose.orientation.y = quat[1]
+	goal.target_pose.pose.orientation.z = quat[2]
+	goal.target_pose.pose.orientation.w = quat[3]
+
+	self.client.send_goal(goal)
+	self.client.wait_for_result(rospy.Duration(30))
+
+	newPos, newQuat = self.getCurrentMapPosition()
+	rospy.loginfo("startPosition x -> " + str(pos[0]) + ", newPosition x -> " + str(newPos[0]))
+	rospy.loginfo("startPosition y -> " + str(pos[1]) + ", newPosition y -> " + str(newPos[1]))
+
+	rospy.loginfo("assertion = " + str(self.almostEqual(pos[0], newPos[0], 1)))
+	rospy.loginfo("assertion = " + str(self.almostEqual(pos[1], newPos[1], 1)))
+	
+
+    def testMoveForwardOneMetre(self):
+	
+	rospy.loginfo('Test: move forward one metre')
+
+        if not rospy.is_shutdown():
+            self.client.cancel_goals_at_and_before_time(rospy.Time.now())
+
+	self.printCurrentPosition()
+
+	goal = MoveBaseGoal()
+	goal.target_pose.header.frame_id = self.__COORDINATE_FRAME_BASE
+	goal.target_pose.header.stamp = rospy.Time.now()
+	goal.target_pose.pose = Pose(Point(1, 0, 0), Quaternion(0, 0, 0, 1))
+
+	self.client.send_goal(goal)
+	self.client.wait_for_result(rospy.Duration(30))
+
+	self.printCurrentPosition()
+
+
+    '''
+    @param 	int[] startPosition (3d vector)
+    '''
+    def testBaseHasMoved(self, startPosition):
+
+	rospy.loginfo('Test: base has moved')
+
+	self.printCurrentPosition()
+
+        pos, quat = self.getCurrentMapPosition()
+	#assert startPosition[0] != pos[0]
+	#assert startPosition[1] != pos[1]
+
+
+    '''
+    @param 	int[] pos (3d vector) 		= POSIION
+		int[] quaternion (4d vector)	= ORIENTATION
+    '''
+    def testMoveToMapPosition(self, point, quaternion):
+	
+	rospy.loginfo('Test: move to position on map')
+
+        if not rospy.is_shutdown():
+            self.client.cancel_goals_at_and_before_time(rospy.Time.now())
+
+	self.printCurrentPosition()
+
+	pos, quaternion = self.getCurrentMapPosition()
+
+	goal = MoveBaseGoal()
+	goal.target_pose.header.frame_id = self.__COORDINATE_FRAME_MAP
+	goal.target_pose.header.stamp = rospy.Time.now()
+	goal.target_pose.pose.position.x = pos[0]
+	goal.target_pose.pose.position.y = pos[1]
+	goal.target_pose.pose.position.z = pos[2]
+	goal.target_pose.pose.orientation.x = quaternion[0]
+	goal.target_pose.pose.orientation.y = quaternion[1]
+	goal.target_pose.pose.orientation.z = quaternion[2]
+	goal.target_pose.pose.orientation.w = quaternion[3]
+
+	self.moveTheBase(goal)
+
+	newPos, newQuat = self.getCurrentMapPosition()
+	rospy.loginfo("targetPosition x -> " + str(pos[0]) + ", actualPosition x -> " + str(newPos[0]))
+	rospy.loginfo("targetPosition y -> " + str(pos[1]) + ", actualPosition y -> " + str(newPos[1]))
+	    
+ 	rospy.loginfo("assertion = " + str(self.almostEqual(point[0], newPos[0], 1)))
+	rospy.loginfo("assertion = " + str(self.almostEqual(point[1], newPos[1], 1)))
+
+
+    def almostEqual(self, a, b, digits):
+    	epsilon = 10 ** -digits
+    	return abs(a/b - 1) < epsilon
+
 
 
 if __name__ == '__main__':
     node = AutonomousPatrol()
     try:
-	node.run()
+	node.startAutopatrol()
+	'''
+	for i in range(1,11):
+	    rospy.loginfo("***** test round " + str(i) + " *****")
+	    node.runAllTests()
+	    rospy.sleep(3)
+	'''
     except rospy.ROSInterruptException:
 	node.stop()
 

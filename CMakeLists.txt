@@ -13,6 +13,8 @@ find_package(catkin REQUIRED COMPONENTS
   move_base_msgs
   nav_msgs
   tf
+  rplidar_ros
+  hector_sensors_description
 )
 
 ## System dependencies are found with CMake's conventions
