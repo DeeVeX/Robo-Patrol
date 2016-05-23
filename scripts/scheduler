@@ -6,12 +6,13 @@ import logging
 from robopatrol.DAO.ConfigDBDao import ConfigDBDao
 from robopatrol.Scheduler.RobopatrolScheduler import RobopatrolScheduler
 from robopatrol.DAO.WaypointDao import WaypointDao
-from robopatrol.Control.moveToPositionOnMap import MoveToPositionOnMap
+from robopatrol.Control.AutonomousPatrol import AutonomousPatrol
 
 import rospy
 
 #CONFIGURATION
 poll_interval_sec = 5
+rospy.init_node("Scheduler", anonymous=False)
 
 ######################################################################################################
 #CREATE YOUR FUNCTIONS FOR YOUR SCHEDULED JOB
@@ -21,17 +22,14 @@ def my_job():
 def do_patrol():
     print('Starting patrol')
     # init move node
-    moveNode = MoveToPositionOnMap()
-    print('created move node')
+    autonomous_patrol = AutonomousPatrol()
 
     waypointDao = WaypointDao()
     waypoints = waypointDao.get_waypoints()
     for waypoint in waypoints:
         print('Waypoint: {0}').format(waypoint)
         # call action node to visit waypoint
-        point = [waypoint['x'], waypoint['y'], 0]
-        quarternion = [0, 0, 0, 1]
-        success = moveNode.moveToPositionOnMap(point, quarternion)
+        success = autonomous_patrol.move_the_base(waypoint['x'], waypoint['y'])
         # if visit successful, update last_visited attribute on waypoint and save to server
         if success:
             waypoint['lastVisited'] = datetime.now()

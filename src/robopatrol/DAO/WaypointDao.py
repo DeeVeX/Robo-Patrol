@@ -11,8 +11,7 @@ class WaypointDao:
             "id": {"type": "string"},
             "name": {"type": "string"},
             "x": {"type": "number"},
-            "y": {"type": "number"},
-            "lastVisited": {"type": "date-time"}
+            "y": {"type": "number"}
         },
         "required": ["id", "x", "y"]
     }
@@ -28,14 +27,11 @@ class WaypointDao:
             if myResponse.ok:
                 JData = json.loads(myResponse.content)
                 #Validate and remove invalid
-                # for waypoint in JData:
-                #     try:
-                #         print('validating')
-                #         validate(waypoint, self.schema_waypoint)
-                #         print('validated')
-                #     except ValidationError as e:
-                #         print 'there was a validation error {0}'.format(e.message)
-                #         JData.remove(waypoint)
+                for waypoint in JData:
+                    try:
+                        validate(waypoint, self.schema_waypoint)
+                    except ValidationError as e:
+                        JData.remove(waypoint)
             else:
                 print('response was not ok')
                 JData = None

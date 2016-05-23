@@ -95,8 +95,7 @@
     <arg name="initial_pose_a" value="$(arg initial_pose_a)" />
   </include>
 
-  <!-- run autonomous patrol -->
+  <!-- run autonomous patrol
   <node pkg="robopatrol" type="autonomousPatrol" name="autopatrol" output="screen" respawn="false">
-  </node>
-
+  </node> -->
 </launch>
