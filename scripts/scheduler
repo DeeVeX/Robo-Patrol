@@ -2,18 +2,36 @@
 
 import time
 from datetime import datetime
-
+import logging
 from robopatrol.DAO.ConfigDBDao import ConfigDBDao
 from robopatrol.Scheduler.RobopatrolScheduler import RobopatrolScheduler
+from robopatrol.DAO.WaypointDao import WaypointDao
+from robopatrol.Control.AutonomousPatrol import AutonomousPatrol
+
+import rospy
 
 #CONFIGURATION
 poll_interval_sec = 5
+rospy.init_node("Scheduler", anonymous=False)
 
 ######################################################################################################
 #CREATE YOUR FUNCTIONS FOR YOUR SCHEDULED JOB
 def my_job():
     print('Tick! The time is: %s' % datetime.now())
 
+def do_patrol():
+    print('Starting patrol')
+    # init move node
+    autonomous_patrol = AutonomousPatrol()
+
+    waypointDao = WaypointDao()
+    waypoints = waypointDao.get_waypoints()
+    for waypoint in waypoints:
+        # call action node to visit waypoint
+        success = autonomous_patrol.move_the_base(waypoint['x'], waypoint['y'])
+        # if visit successful, update last_visited attribute on waypoint and save to server
+        if success:
+            waypoint['lastVisited'] = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]+'Z'
 
 #SCHEDULER FUNCTION SECTION END
 #######################################################################################################
@@ -23,14 +41,18 @@ def my_job():
 job_listdict = [
     {
         "name": my_job,
+        "displayName": "Sample job",
         "description": "Testjob, which tests the scheduler. (Remove as soon as this script is productive)",
-        "cron": "*/5 * * * * *"
-    }#,
-#    {
-#        "name": my_function,
-#        "description": "COPY ME ( I AM LE TEMPLATE)",
-#        "cron": "* * * * * *"
-#    }
+        "cron": "*/2 * * * * *",
+        "active": "false"
+    },
+    {
+        "name": do_patrol,
+        "displayName": "Hourly Patrol",
+        "description": "Starts the patrol whenever you want it to.",
+        "cron": "* * * * * *",
+        "active": "false"
+    }
 ]
 # END JOB SECTION
 ######################################################################################################
@@ -44,6 +66,7 @@ def terminate(scheduler):
 
 
 #Initializing stuff
+logging.basicConfig()
 scheduler = RobopatrolScheduler(job_listdict)
 configDBDao = ConfigDBDao()
 posted_jobs = configDBDao.post_jobs(scheduler.get_jobs_json())
@@ -69,7 +92,7 @@ try:
             job_dict_actual = get_dict_job_by_name(scheduler.get_jobs_json(), job.name)
 
             #Process actions
-            if job_dict is None:
+            if job_dict is None or not job_dict['active']:
                 job.pause()
             else:
                 if job_dict_actual['cron'] != job_dict['cron'] or job.next_run_time is None:
