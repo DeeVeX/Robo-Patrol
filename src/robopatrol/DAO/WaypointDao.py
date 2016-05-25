@@ -11,7 +11,8 @@ class WaypointDao:
             "id": {"type": "string"},
             "name": {"type": "string"},
             "x": {"type": "number"},
-            "y": {"type": "number"}
+            "y": {"type": "number"},
+            "lastVisited": {"type": "string"}
         },
         "required": ["id", "x", "y"]
     }
@@ -33,19 +34,18 @@ class WaypointDao:
                     except ValidationError as e:
                         JData.remove(waypoint)
             else:
-                print('response was not ok')
                 JData = None
         except (ValueError, ConnectionError):
-            print('there was an error')
             JData = None
-        print('returning data')
         return JData
 
     def post_job(self, waypoint):
         headers = {'Content-type': 'application/json'}
         response = None
         try:
-            response = requests.post(self.configURL, data=json.dumps(waypoint), headers=headers)
+            print "puttin"
+            response = requests.put(self.configURL+"/"+waypoint['id'], data=json.dumps(waypoint), headers=headers)
+            print "did the put"
         except ConnectionError:
             response = False
         return response

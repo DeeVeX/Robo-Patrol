@@ -140,7 +140,7 @@ class AutonomousPatrol():
 
     def move_the_base(self, x, y):
         goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id = self.__COORDINATE_FRAME_BASE
+        goal.target_pose.header.frame_id = self.__COORDINATE_FRAME_MAP
         goal.target_pose.header.stamp = rospy.Time.now()
         goal.target_pose.pose.position.x = x
         goal.target_pose.pose.position.y = y

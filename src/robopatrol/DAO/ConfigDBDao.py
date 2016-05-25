@@ -11,9 +11,12 @@ class ConfigDBDao:
             "id": {"type": "string"},
             "name": {"type": "string"},
             "displayName": {"type": "string"},
-            "cron": {"type": "string"}
+            "cron": {"type": "string"},
+            "active": {"type": "boolean"},
+            "takePhoto": {"type": "boolean"},
+            "takePhotoIntervalSec": {"type": "integer"}
         },
-        "required": ["id", "name", "cron"]
+        "required": ["id", "name", "cron", "active"]
     }
 
     configURL = 'http://localhost:9998/schedule'
