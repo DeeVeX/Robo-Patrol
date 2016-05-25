@@ -5,6 +5,7 @@ project(robopatrol)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  message_generation
   geometry_msgs
   rospy
   sensor_msgs
@@ -58,11 +59,15 @@ catkin_python_setup()
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  MapServiceStart.srv
+  MapServiceStop.srv
+  MapServiceRecord.srv
+  MapServiceSave.srv
+  MapServiceDelete.srv
+  MapServiceLoadDefault.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -72,16 +77,16 @@ catkin_python_setup()
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs  # Or other packages containing msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
 ################################################
 
-## To declare and build dynamic reconfigure parameters within this
+# To declare and build dynamic reconfigure parameters within this
 ## package, follow these steps:
 ## * In the file package.xml:
 ##   * add a build_depend and a run_depend tag for "dynamic_reconfigure"
@@ -109,7 +114,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES robopatrol
-#  CATKIN_DEPENDS rospy
+  CATKIN_DEPENDS rospy message_runtime
 #  DEPENDS system_lib
 )
 
@@ -186,8 +191,8 @@ include_directories(
 #############
 
 if(CATKIN_ENABLE_TESTING)
-    #find_package(rostest REQUIRED)
-    
+    find_package(rostest REQUIRED)
+
     ## Add gtest based cpp test target and link libraries
     # catkin_add_gtest(${PROJECT_NAME}-test test/test_robopatrol.cpp)
     # if(TARGET ${PROJECT_NAME}-test)

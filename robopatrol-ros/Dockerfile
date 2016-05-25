@@ -13,5 +13,6 @@ ros-indigo-rocon-remocon \
 ros-indigo-rocon-qt-library \
 ros-indigo-ar-track-alvar-msgs \
 build-essential python-twisted \
+python-pip \
 && rm -rf /var/lib/apt/lists/*
 

@@ -1,0 +1,26 @@
+#!/usr/bin/env python
+
+# from robopatrol.srv import *
+from std_srvs.srv import *
+from robopatrol.DAO.PictureDao import PictureDao
+from robopatrol.Media.Camera import Camera
+import rospy
+
+
+def handle_save_photo(emptyArg):
+    picture_dao = PictureDao()
+    camera = Camera()
+
+    success = picture_dao.post_picture(camera.get_photo())
+    message = "success" if success else "no success"
+    response = TriggerResponse(success, message)
+    return response
+
+
+def save_photo_server():
+    rospy.init_node("camera")
+    s = rospy.Service('save_photo', Trigger, handle_save_photo)
+    rospy.spin()
+
+if __name__ == "__main__":
+    save_photo_server()
